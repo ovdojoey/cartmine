@@ -35,12 +35,17 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 
 3. Handle checkout and payment processor integration with minimal code:
 
+*If you do not add an onCheckout function, Cartmine will default to making a POST request to the data-checkout-page specified in the included script.
+By default this will include all items and totals in the cart, but optionally you can send an auth token as shown below*
+
 ```
-// Upon clicking checkout, create a Stripe charge (requires minimal Stripe integration)
-// Cartmine sends the auth_token to your server along with all Cartmine items and data
+<script src="https://checkout.stripe.com/checkout.js"></script>
+
+// Upon clicking checkout, create a Stripe charge.
+// Cartmine sends the authToken to your server along with all Cartmine items and data
 Cartmine.onCheckout(() => {
     StripeCheckout.configure({
-        key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your stripe key
+        key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your public stripe key
         token: function(token) {
             this.setAuthToken(token);
         }
