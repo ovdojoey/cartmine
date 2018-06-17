@@ -33,18 +33,16 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 </button>
 ```
 
-3. Integrate with a payment processor using minimal code:
+3. Handle checkout and payment processor integration with minimal code:
 
 ```
 // Upon clicking checkout, create a Stripe charge (requires minimal Stripe integration)
 // Cartmine sends the auth_token to your server along with all Cartmine items and data
 Cartmine.onCheckout(() => {
-    let auth_token;
     StripeCheckout.configure({
         key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your stripe key
         token: function(token) {
-            auth_token = token;
-            // Send token.id to your server for processing the charge `token.id`.
+            this.setAuthToken(token);
         }
     }).open({
         amount: this.cart.getSubtotal()
