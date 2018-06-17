@@ -12,13 +12,15 @@ Integrates easily with Stripe for a full checkout solution.
 Cartmine keeps track of items in your cart through local storage or cookies when local storage is not supported.
 The page is searched for Cartmine DOM elements and click event listeners are attached which add items to the cart.
 
+---
+
 ## Getting started
 1. Include the Cartmine script on your page:
 
 ```
 <script src="cartmine_min.js"
     data-cartmine
-    data-checkout-page="checkout.php"
+    data-checkout-url="checkout.php"
     data-currency="USD">
 </script>
 ```
@@ -27,10 +29,11 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 
 ```
 <button
-    data-cartmine-item
-    data-id="rainbow-tshirt-small"
-    data-amount="500"
-    data-description="Awesome Rainbow T-Shirt (Small)"
+    data-cartmine-item                                               // REQUIRED
+    data-id="rainbow-tshirt-small"                                   // REQUIRED - every ID must be unique
+    data-amount="500"                                                // OPTIONAL - amount is in base units (cents)
+    data-name="Rainbow T (Small)"                                    // OPTIONAL
+    data-description="Soft & beautiful t-shirt made of pure..."      // OPTIONAL
 >
     Add to cart
 </button>
@@ -50,21 +53,52 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 <script src="https://checkout.stripe.com/checkout.js"></script>
 
 // Upon clicking checkout, create a Stripe charge.
-// Cartmine sends the authToken to your server (specified in data-checkout-page above) along with all Cartmine items and data
+// Cartmine sends the authToken to your server (specified in data-checkout-url above) along with all Cartmine items and data
 Cartmine.onCheckout(() => {
     StripeCheckout.configure({
         key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your public stripe key
-        token: function(token) {
-            this.setAuthToken(token);
+        token: (token) => {
+            // Transaction is finished.
+            Cartmine.submit({ token });
         }
     }).open({
-        amount: this.cart.getSubtotal()
+        amount: Cartmine.getSubtotal()
     });
 });
 ```
 
-5. The customer enters checkout. Cartmine data is sent to your server (a POST request to the url provided in `data-checkout-page`). Use this to charge your customers.
+5. The customer enters checkout. Cartmine data is sent to your server (a POST request to the url provided in `data-checkout-url`). Use this to charge your customers
 
 
 ## Best Practices
 Cartmine is a client side cart system and should be used with care. It is recommended that you validate data as authentic using the unique identifiers (`data-id`) you used when creating the HTML elements along with the other information.
+
+---
+
+# API
+
+## Cartmine
+Access to the core Cartmine object which stored on `window`.
+
+#### Cartmine.getSubtotal()
+Get the subtotal in base units (cents)
+
+#### Cartmine.submit(token)
+Submit the current cart to your server. Will POST values to the endpoint specified in data-checkout-url.
+Optionally accepts a token value which will be sent along with the request.
+
+---
+
+# Advanced
+
+## Optional configuration
+Additional options to set when including the Cartmine script (see Step 1 in Getting Started).
+
+`data-testing='true'`
+Shows you errors, warnings, and information about your Cartmine implementation. Open the developer console to see any issues found.
+
+`data-tax='0.75'`
+If you have a predefined tax rate, specify it here.
+
+`data-currency='EUR'`
+3 letter ISO currency code. Default is USD. 

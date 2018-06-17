@@ -126,10 +126,25 @@ class Cartmine {
     constructor() {
         this.cart = new Cart();
         this.options = options;
+        this.authToken = null;
+
+        // Find all items that are able to be added to cart in DOM
         shoppableItems.find(this.cart);
     }
     checkout() {
         // console.log(this.cart.get());
+    }
+    onCheckout(func) {
+        this.onCheckoutHandler = func.bind(this);
+    }
+    submit() {
+        console.log(this);
+    }
+    setAuthToken(token) {
+        this.authToken = token;
+    }
+    getSubtotal() {
+        return this.cart.getSubtotal();
     }
     static start() {
         if (!window.Cartmine) {
