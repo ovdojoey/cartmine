@@ -1,0 +1,14 @@
+{
+  "name": "cartmine",
+  "version": "1.0.0",
+  "description": "Carts made easy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joey Lea <ovdojoey@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "js-cookie": "^2.2.0"
+  }
+}
