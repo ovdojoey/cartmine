@@ -30,12 +30,21 @@ The page is searched for Cartmine DOM elements and click event listeners are att
     data-cartmine-item
     data-id="rainbow-tshirt-small"
     data-amount="500"
-    data-description="Awesome Rainbow T-Shirt (Small)">
-    ADD
+    data-description="Awesome Rainbow T-Shirt (Small)"
+>
+    Add to cart
 </button>
 ```
 
-3. Handle checkout and payment processor integration with minimal code:
+3. Create a checkout button:
+
+```
+<button data-cartmine-checkout>
+    Checkout
+</button>
+```
+
+4. Handle payment processor integration with minimal code:
 
 ```
 <script src="https://checkout.stripe.com/checkout.js"></script>
@@ -53,10 +62,8 @@ Cartmine.onCheckout(() => {
     });
 });
 ```
-*If you do not add an onCheckout function, Cartmine will default to making a POST request to the data-checkout-page specified in the included script.
-By default this will include all items and totals in the cart, but optionally you can send an auth token as shown above*
 
-4. The customer can checkout with their name and email. The cart data is sent to your server (a POST request to the url provided in `data-checkout-page`). Use this to easily charge your customers.
+5. The customer enters checkout. Cartmine data is sent to your server (a POST request to the url provided in `data-checkout-page`). Use this to charge your customers.
 
 
 ## Best Practices
