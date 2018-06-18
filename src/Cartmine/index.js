@@ -1,7 +1,8 @@
 const Cart = require('../Cart');
-const Errors = require('../Errors');
+const Logger = require('../Logger');
 const DOM = require('../DOM');
 const options = require('../Options');
+const config = require('../Config');
 
 class Cartmine {
     constructor() {
@@ -17,8 +18,10 @@ class Cartmine {
     checkout() {
         if (this.onCheckoutHandler) {
             this.onCheckoutHandler();
-        } else {
+        } else if (!config.cartmineForm) {
             this.submit();
+        } else {
+            this.submitForm();
         }
     }
     onCheckout(func) {
@@ -29,7 +32,17 @@ class Cartmine {
             this.setAuthToken(token);
         }
         // Send all data to this.options.checkoutUrl
-        console.log(this.makePurchaseDocument())
+        const purchaseDocument = this.makePurchaseDocument();
+        return fetch(this.options.checkoutUrl, {
+            method: 'POST',
+            body: purchaseDocument,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    submitForm() {
+        config.cartmineForm.submit();
     }
     makePurchaseDocument() {
         const cartItems = this.cart.get();
@@ -57,7 +70,7 @@ class Cartmine {
         DOM.setupItems(this);
         DOM.setupCheckoutButtons(this);
         if (options.testing) {
-            Errors.log();
+            Logger.log();
         }
     }
     static start() {

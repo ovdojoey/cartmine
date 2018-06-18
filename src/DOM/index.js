@@ -1,6 +1,6 @@
 const CartItem = require('../CartItem');
 const listeners = require('./listeners.js');
-
+const Logger = require('../Logger');
 
 module.exports = {
     setupItems(Cartmine) {
@@ -51,6 +51,9 @@ module.exports = {
                 return false;
             }
             const dataItemElems = [].slice.call(document.querySelectorAll(dataItem.selector));
+            if (dataItemElems.length === 0) {
+                Logger.add(`The data map selector ${dataItem.selector} did not resolve to any HTML element on this page`, 'info');
+            }
             dataItemElems.forEach((elem) => {
                 elem.setAttribute('data-id', dataItemKey);
                 Object.keys(dataItem).forEach((dataItemPropKey) => {

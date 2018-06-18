@@ -24,7 +24,7 @@
     <!-- Include the Stripe checkout code (optional if intergrating with Stripe) -->
     <script src="https://checkout.stripe.com/checkout.js"></script>
 
-    <!-- Define your items as JSON. Note: a unique ID on the script tag is required -->
+    <!-- Define your items as JSON. Note: the id is required and matches data-items-map-id below -->
     <script id="items_map" type="application/json">
         {
             "tshirt": {
@@ -45,6 +45,7 @@
         data-cartmine
         data-testing="true"
         data-items-map-id="items_map"
+        data-checkout-url="process_charge.php"
         data-currency="USD">
     </script>
 

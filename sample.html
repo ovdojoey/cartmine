@@ -70,13 +70,13 @@
     <script src="cartmine_min.js"
         data-cartmine
         data-testing="true"
-        data-checkout-url="https://my-secure-website.com/handleCheckout.php">
+        data-checkout-url="process_charge.php">
     </script>
 
     <!-- Include the Stripe checkout code (optional if intergrating with Stripe) -->
     <script src="https://checkout.stripe.com/checkout.js"></script>
 
-    <!-- Custom checkout handler with Stripe integration -->
+    <!-- Custom checkout handler with Stripe integration. -->
     <script>
         Cartmine.onCheckout(() => {
             StripeCheckout.configure({

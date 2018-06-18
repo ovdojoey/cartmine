@@ -1,6 +1,6 @@
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 
-class Errors {
+class Logger {
     constructor() {
         this.errors = [];
         this.warns = [];
@@ -34,4 +34,4 @@ class Errors {
     }
 }
 
-module.exports = new Errors();
+module.exports = new Logger();
