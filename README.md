@@ -127,7 +127,7 @@ Optionally accepts a token value which will be sent along with the request.
 # Examples
 
 - [Stripe enabled basic cart](sample.html) - A few items ready to be added to cart. When ready to checkout, Stripe Checkout is called. A Stripe token is passed to your server.
-- [Stripe enabled basic cart](sample_json.html) - Uses JSON items map to enable add-to-cart functionality.  Useful if your shopping items data is consistent and would be re-verified server-side.
+- [Stripe enabled basic cart with JSON map](sample_json.html) - Uses JSON items map to enable add-to-cart functionality.  Useful if your shopping items data is consistent and would be re-verified server-side.
 
 ---
 
@@ -135,7 +135,7 @@ Optionally accepts a token value which will be sent along with the request.
 
 Add `data-testing='true'` as a data attribute to your script tag and open the Console. See if any errors show up there.
 
-# Advanced
+---
 
 ## Optional configuration
 Additional options to set when including the Cartmine script (see Step 1 in Getting Started).
@@ -145,3 +145,20 @@ Shows you errors, warnings, and information about your Cartmine implementation. 
 
 `data-currency='EUR'`
 3 letter ISO currency code. Default is USD.
+
+`data-items-map-id=my-element-id`
+Used to specify a JSON map of shopping items.  See the [Stripe enabled basic cart with JSON map](sample_json.html) example.
+
+`data-checkout-url=checkout.php`
+Endpoint where the Cartmine data is sent to when checkout is complete.
+
+
+---
+
+# Future
+
+- Include a visual cart on page (through iFrame or DOM)
+    - Allow add, delete, update quantity interactions
+- Create pub/sub model when any action is taken
+    - Allow users to hook into add/remove/quantity change actions and fire custom handlers upon changes. Will be useful for those who want to render their own client-side cart implementation.
+- Support coupons, item customization, possibly stock, and free-form price (donations).
