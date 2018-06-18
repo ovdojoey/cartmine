@@ -1,4 +1,5 @@
-/* global Cookies */
+const Cookies = require('js-cookie');
+
 class Storage {
     constructor() {
         this.supportsLocalStore = this.doesSupportLocalStore();
