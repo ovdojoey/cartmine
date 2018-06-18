@@ -2,13 +2,21 @@ const CartItem = require('../CartItem');
 const listeners = require('./listeners.js');
 const Logger = require('../Logger');
 
+const allItems = [];
+
 module.exports = {
     setupItems(Cartmine) {
         if (Cartmine.options.dataMapId) {
             this.mapDataToItems(Cartmine);
         }
-        const items = [].slice.call(document.querySelectorAll('[data-cartmine-item]'));
+        const items = this.getShoppingItemElems();
         this.addItems(Cartmine, items);
+    },
+    getShoppingItemElems() {
+        return [].slice.call(document.querySelectorAll('[data-cartmine-item]'));
+    },
+    getCartItems() {
+        return allItems;
     },
     addItems(Cartmine, items) {
         items.forEach((item) => {
@@ -24,8 +32,7 @@ module.exports = {
             if (CartItem.validate(item)) {
                 const addableItem = new CartItem(item);
 
-                // Update any out of date cart items (price, etc)
-                Cartmine.cart.update(addableItem);
+                allItems.push(addableItem);
 
                 // Add item to cart
                 listeners.add({

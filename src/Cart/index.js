@@ -1,9 +1,23 @@
 const Storage = require('../Storage');
 const notifications = require('../Notifications');
+const DOM = require('../DOM');
 
 let items = Storage.get('cart') || {};
 
 class Cart {
+    constructor() {
+        DOM.getCartItems().forEach((shoppableItem) => {
+            const cartItem = items[shoppableItem.id];
+            if (cartItem) {
+                for (const prop in shoppableItem) {
+                    if (prop !== 'quantity') {
+                        cartItem[prop] = shoppableItem[prop];
+                    }
+                }
+            }
+            this.save();
+        });
+    }
     add(cartItem) {
         let item;
         if (items[cartItem.id]) {
@@ -54,17 +68,7 @@ class Cart {
             return cum + acc;
         }, 0);
     }
-    update(shoppableItem) {
-        const cartItem = items[shoppableItem.id];
-        if (cartItem) {
-            for (const prop in shoppableItem) {
-                if (prop !== 'quantity') {
-                    cartItem[prop] = shoppableItem[prop];
-                }
-            }
-        }
-        this.save();
-    }
+
 }
 
 module.exports = Cart;

@@ -6,7 +6,7 @@ const config = require('../Config');
 
 class Cartmine {
     constructor() {
-        this.cart = new Cart();
+        this.cart = null;
         this.options = options;
         this.authToken = null;
         this.onCheckoutHandler = null;
@@ -69,6 +69,7 @@ class Cartmine {
     init() {
         DOM.setupItems(this);
         DOM.setupCheckoutButtons(this);
+        this.cart = new Cart();
         if (options.testing) {
             Logger.log();
         }
