@@ -2,15 +2,17 @@
 Easy JavaScript carts in the Browser.
 
 ### What is it?
-Cartmine is a client-side (Javascript) cart system designed to support basic carts with minimal code.
-Avoid setting up complex databases, handling data persistence, sessions, and complex cart software.
+Cartmine is a client-side Javascript cart system designed to support basic carts with minimal code.
+Avoid setting up complex databases, handling data persistence, sessions, or complex cart software.
 
-By adding HTML elements with a data attribute `data-cartmine-item`, you create add to cart functionality.
+By adding HTML elements with a data attribute `data-cartmine-item`, you'll have add-to-cart functionality out of the box.
 Integrates easily with Stripe for a full checkout solution.
 
 ### Under the hood
 Cartmine keeps track of items in your cart through local storage or cookies.
-The document is searched for Cartmine DOM elements and click event listeners are attached which add items to the cart.
+The document is searched for Cartmine DOM elements and click event listeners are attached. Upon checkout,
+Cartmine can send cart data to your server using a POST request with JSON body.  With a few lines of back-end code,
+you can charge your customers and fulfill orders.
 
 ---
 
@@ -39,7 +41,7 @@ The document is searched for Cartmine DOM elements and click event listeners are
 </button>
 ```
 
-3. Alternatively, instead of using HTML elements, you can pass a JSON map to define all shopping cart items:
+3. Alternatively, instead of using HTML elements in Step 2, you can pass a JSON map to define all shopping cart items:
 ```
 // Define your items as JSON. Note: a unique ID on the script tag is required
 <script id="items_map" type="application/json">
@@ -47,7 +49,7 @@ The document is searched for Cartmine DOM elements and click event listeners are
         "tshirt": {
             "amount": 400,
             "name": "T-shirt",
-            "selector": "#cm_tshirt_1" // Points to an HTML with specified ID
+            "selector": "#cm_tshirt_1" // Points to an DOM node with the specified ID
         },
         "sweatshirt": {
             "amount": 400,
@@ -57,7 +59,7 @@ The document is searched for Cartmine DOM elements and click event listeners are
     }
 </script>
 
-// Include the Cartmine script. Notice the data-map-id pointing to the ID of the script above
+// Include the Cartmine script. Note the data-items-map-id pointing to the ID of the script above
 <script src="cartmine_min.js"
     data-cartmine
     data-testing="true"
@@ -81,7 +83,7 @@ The document is searched for Cartmine DOM elements and click event listeners are
 <script src="https://checkout.stripe.com/checkout.js"></script>
 
 // Upon clicking checkout, create a Stripe charge.
-// Cartmine sends the authToken to your server (specified in data-checkout-url above) along with all Cartmine items and data
+// Cartmine sends the authToken to your server along with all Cartmine items
 Cartmine.onCheckout(() => {
     StripeCheckout.configure({
         key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your public stripe key
@@ -99,7 +101,8 @@ Cartmine.onCheckout(() => {
 
 
 ## Best Practices
-Cartmine is a client side cart system and should be used with care. It is recommended that you validate data as authentic using the unique identifiers (`data-id`) you used when creating the HTML elements along with the other information.
+Cartmine is a client side cart system and should be used with care. It is imperative that you validate the data passed your server-side script. One approach may be to use the unique identifiers (`data-id`) for each item and verify the price matches what's expected.
+
 
 ---
 
@@ -108,14 +111,29 @@ Cartmine is a client side cart system and should be used with care. It is recomm
 ## Cartmine
 Access to the core Cartmine object stored on `window`.
 
+#### Cartmine.onCheckout(func)
+Pass in a custom function which is called the user is ready to checkout. This is where you could hook-up Stripe integration, or others.
+
 #### Cartmine.getSubtotal()
 Get the subtotal in base units (cents)
 
 #### Cartmine.submit(token)
-Submit the current cart to your server. Will POST values to the endpoint specified in data-checkout-url.
+Submit the current cart to your server. This will POST JSON data to the endpoint specified in data-checkout-url.
 Optionally accepts a token value which will be sent along with the request.
 
 ---
+
+
+# Examples
+
+- [Stripe enabled basic cart](sample.html) - A few items ready to be added to cart. When ready to checkout, Stripe Checkout is called. A Stripe token is passed to your server.
+- [Stripe enabled basic cart](sample_json.html) - Uses JSON items map to enable add-to-cart functionality.  Useful if your shopping items data is consistent and would be re-verified server-side.
+
+---
+
+# Something's wrong
+
+Add `data-testing='true'` as a data attribute to your script tag and open the Console. See if any errors show up there.
 
 # Advanced
 
@@ -124,9 +142,6 @@ Additional options to set when including the Cartmine script (see Step 1 in Gett
 
 `data-testing='true'`
 Shows you errors, warnings, and information about your Cartmine implementation. Open the developer console to see any issues found.
-
-`data-tax='0.75'`
-If you have a predefined tax rate, specify it here.
 
 `data-currency='EUR'`
 3 letter ISO currency code. Default is USD.
