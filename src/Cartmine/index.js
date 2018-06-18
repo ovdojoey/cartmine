@@ -1,6 +1,7 @@
 const Cart = require('../Cart');
+const Errors = require('../Errors');
+const DOM = require('../DOM');
 const options = require('../Options');
-const shoppableItems = require('../ShoppableItems');
 
 class Cartmine {
     constructor() {
@@ -8,8 +9,10 @@ class Cartmine {
         this.options = options;
         this.authToken = null;
         this.onCheckoutHandler = null;
-        // Find all items that are able to be added to cart in DOM
-        shoppableItems.find(this.cart);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            this.init();
+        });
     }
     checkout() {
         if (this.onCheckoutHandler) {
@@ -19,22 +22,23 @@ class Cartmine {
         }
     }
     onCheckout(func) {
-        this.onCheckoutHandler = func.bind(this);
+        this.onCheckoutHandler = func;
     }
     submit(token) {
         if (token !== undefined) {
             this.setAuthToken(token);
         }
         // Send all data to this.options.checkoutUrl
-
+        console.log(this.makePurchaseDocument())
     }
     makePurchaseDocument() {
+        const cartItems = this.cart.get();
         const purchaseDocument = {
-            cartmine: this,
+            options: this.options,
             subtotal: this.getSubtotal(),
-            items: this.cart.get(),
+            items: Object.keys(cartItems).map((cartItemKey) => cartItems[cartItemKey]),
             currencyCode: this.options.currency,
-            tax: this.options.tax
+            taxRate: this.options.taxRate
         };
 
         if (this.authToken) {
@@ -48,6 +52,13 @@ class Cartmine {
     }
     getSubtotal() {
         return this.cart.getSubtotal();
+    }
+    init() {
+        DOM.setupItems(this);
+        DOM.setupCheckoutButtons(this);
+        if (options.testing) {
+            Errors.log();
+        }
     }
     static start() {
         if (!window.Cartmine) {

@@ -3,6 +3,7 @@ const options = {
     currencyCode: cartmineScript.getAttribute('data-currency') || 'USD',
     testing: (cartmineScript.getAttribute('data-testing') === 'true'),
     checkoutUrl: cartmineScript.getAttribute('data-checkout-url'),
-    tax: cartmineScript.getAttribute('data-tax-rate') || 0,
+    taxRate: cartmineScript.getAttribute('data-tax-rate') || null,
+    dataMapId: cartmineScript.getAttribute('data-items-map-id') || null,
 };
 module.exports = options;

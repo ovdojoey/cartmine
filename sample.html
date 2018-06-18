@@ -50,25 +50,46 @@
                 ADD
             </button>
         </li>
+        <li>
+            <!-- Note: when you want more than one add button for the same item, use data-id-ref  -->
+            TSHIRT 4 (reference) -
+            <button
+                data-cartmine-item
+                data-ref="tshirt4"
+            >
+                ADD
+            </button>
+        </li>
     </ul>
 
+    <button data-cartmine-checkout>
+        Checkout
+    </button>
+
+    <!-- Include the Cartmine script -->
     <script src="cartmine_min.js"
         data-cartmine
         data-testing="true"
-        data-currency="USD">
+        data-checkout-url="https://my-secure-website.com/handleCheckout.php">
     </script>
 
+    <!-- Include the Stripe checkout code (optional if intergrating with Stripe) -->
+    <script src="https://checkout.stripe.com/checkout.js"></script>
 
-    <script
-    src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-    data-key="pk_test_g6do5S237ekq10r65BnxO6S0"
-    data-amount="999"
-    data-name="Stripe.com"
-    data-description="Widget"
-    data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-    data-locale="auto"
-    data-zip-code="true">
-  </script>
+    <!-- Custom checkout handler with Stripe integration -->
+    <script>
+        Cartmine.onCheckout(() => {
+            StripeCheckout.configure({
+                key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your public stripe key
+                token: (token) => {
+                    // Transaction is finished.
+                    Cartmine.submit({ token });
+                }
+            }).open({
+                amount: Cartmine.getSubtotal()
+            });
+        });
+    </script>
 
 </body>
 </html>

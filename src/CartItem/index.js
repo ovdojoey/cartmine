@@ -14,8 +14,12 @@ class CartItem {
     static validate(elem) {
         return isValid(elem);
     }
-    static addClickListener(elem, handler) {
-        elem.addEventListener('click', handler);
+    static resolveReference(elem) {
+        const referenced = document.querySelector(`[data-id=${elem.dataset.ref}]`);
+        if (!referenced) {
+            return false;
+        }
+        return referenced;
     }
 }
 

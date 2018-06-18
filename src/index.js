@@ -1,11 +1,4 @@
 const Cartmine = require('./Cartmine');
-const Errors = require('./Errors');
-const options = require('./Options');
 
-document.addEventListener('DOMContentLoaded', () => {
-    Cartmine.start();
-});
-
-if (options.testing) {
-    Errors.log();
-}
+// Start Cartmine
+Cartmine.start();

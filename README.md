@@ -1,5 +1,5 @@
 # Cartmine
-Easy JavaScript carts.
+Easy JavaScript carts in the Browser.
 
 ### What is it?
 Cartmine is a client-side (Javascript) cart system designed to support basic carts with minimal code.
@@ -9,8 +9,8 @@ By adding HTML elements with a data attribute `data-cartmine-item`, you create a
 Integrates easily with Stripe for a full checkout solution.
 
 ### Under the hood
-Cartmine keeps track of items in your cart through local storage or cookies when local storage is not supported.
-The page is searched for Cartmine DOM elements and click event listeners are attached which add items to the cart.
+Cartmine keeps track of items in your cart through local storage or cookies.
+The document is searched for Cartmine DOM elements and click event listeners are attached which add items to the cart.
 
 ---
 
@@ -39,7 +39,35 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 </button>
 ```
 
-3. Create a checkout button:
+3. Alternatively, instead of using HTML elements, you can pass a JSON map to define all shopping cart items:
+```
+// Define your items as JSON. Note: a unique ID on the script tag is required
+<script id="items_map" type="application/json">
+    {
+        "tshirt": {
+            "amount": 400,
+            "name": "T-shirt",
+            "selector": "#cm_tshirt_1" // Points to an HTML with specified ID
+        },
+        "sweatshirt": {
+            "amount": 400,
+            "name": "Sweat shirt",
+            "selector": ".cm_sweatshirt"
+        }
+    }
+</script>
+
+// Include the Cartmine script. Notice the data-map-id pointing to the ID of the script above
+<script src="cartmine_min.js"
+    data-cartmine
+    data-testing="true"
+    data-items-map-id="items_map"
+    data-currency="USD">
+</script>
+```
+
+
+4. Create a checkout button:
 
 ```
 <button data-cartmine-checkout>
@@ -47,7 +75,7 @@ The page is searched for Cartmine DOM elements and click event listeners are att
 </button>
 ```
 
-4. Handle payment processor integration with minimal code:
+5. Handle payment processor integration with minimal code:
 
 ```
 <script src="https://checkout.stripe.com/checkout.js"></script>
@@ -67,7 +95,7 @@ Cartmine.onCheckout(() => {
 });
 ```
 
-5. The customer enters checkout. Cartmine data is sent to your server (a POST request to the url provided in `data-checkout-url`). Use this to charge your customers
+6. The customer enters checkout. Cartmine data is sent to your server (a POST request to the url provided in `data-checkout-url`). Use this to charge your customers
 
 
 ## Best Practices
@@ -78,7 +106,7 @@ Cartmine is a client side cart system and should be used with care. It is recomm
 # API
 
 ## Cartmine
-Access to the core Cartmine object which stored on `window`.
+Access to the core Cartmine object stored on `window`.
 
 #### Cartmine.getSubtotal()
 Get the subtotal in base units (cents)
@@ -101,4 +129,4 @@ Shows you errors, warnings, and information about your Cartmine implementation. 
 If you have a predefined tax rate, specify it here.
 
 `data-currency='EUR'`
-3 letter ISO currency code. Default is USD. 
+3 letter ISO currency code. Default is USD.

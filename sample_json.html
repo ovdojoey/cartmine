@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Cartmine using JSON item map</title>
+</head>
+<body>
+    <h2>Shopping store</h2>
+    <ul>
+        <li>
+            TSHIRT -
+            <button id="cm_tshirt_1">Add to Cart</button>
+        </li>
+        <li>
+            SWEAT SHIRT -
+            <button class="cm_sweatshirt">Add to Cart</button>
+        </li>
+    </ul>
+
+    <button data-cartmine-checkout>
+        Checkout
+    </button>
+
+    <!-- Include the Stripe checkout code (optional if intergrating with Stripe) -->
+    <script src="https://checkout.stripe.com/checkout.js"></script>
+
+    <!-- Define your items as JSON. Note: a unique ID on the script tag is required -->
+    <script id="items_map" type="application/json">
+        {
+            "tshirt": {
+                "amount": 400,
+                "name": "T-shirt",
+                "selector": "#cm_tshirt_1"
+            },
+            "sweatshirt": {
+                "amount": 400,
+                "name": "Sweat shirt",
+                "selector": ".cm_sweatshirt"
+            }
+        }
+    </script>
+
+    <!-- Include the Cartmine script. Notice the data-map-id pointing to the ID of the script above -->
+    <script src="cartmine_min.js"
+        data-cartmine
+        data-testing="true"
+        data-items-map-id="items_map"
+        data-currency="USD">
+    </script>
+
+    <!-- Custom checkout handler with Stripe integration -->
+    <script>
+        Cartmine.onCheckout(() => {
+            StripeCheckout.configure({
+                key: 'pk_test_g6do5S237ekq10r65BnxO6S0', // Your public stripe key
+                token: (token) => {
+                    // Transaction is finished.
+                    Cartmine.submit({ token });
+                }
+            }).open({
+                amount: Cartmine.getSubtotal()
+            });
+        });
+    </script>
+
+
+
+
+</body>
+</html>

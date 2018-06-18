@@ -70,7 +70,7 @@ class Cart {
 
 module.exports = Cart;
 
-},{"../Notifications":6,"../Storage":9}],2:[function(require,module,exports){
+},{"../Notifications":8,"../Storage":10}],2:[function(require,module,exports){
 const isValid = require('./isValid.js');
 
 class CartItem {
@@ -87,8 +87,12 @@ class CartItem {
     static validate(elem) {
         return isValid(elem);
     }
-    static addClickListener(elem, handler) {
-        elem.addEventListener('click', handler);
+    static resolveReference(elem) {
+        const referenced = document.querySelector(`[data-id=${elem.dataset.ref}]`);
+        if (!referenced) {
+            return false;
+        }
+        return referenced;
     }
 }
 
@@ -101,12 +105,13 @@ const itemsValidated = {};
 module.exports = (elem) => {
     let errors = 0;
     const id = elem.dataset.id;
-    if (!id) {
-        Errors.add(`[data-id] is required for a cart item element: ${elem.outerHTML}`);
+    const ref = elem.dataset.ref;
+    if (!id && !ref) {
+        Errors.add(`[data-id] or [data-ref] is required for a cart item element: ${elem.outerHTML}`);
         errors++;
     }
-    if (itemsValidated[id]) {
-        Errors.add(`ID ${id} already used. Item ID must be distinct for element: ${elem.outerHTML}`);
+    if (itemsValidated[id] && !elem.dataset.referenced) {
+        Errors.add(`ID ${id} already used on another element. Use [data-ref] to point to another ID.  This item will be disabled: ${elem.outerHTML}`);
         errors++;
     }
     if (isNaN(parseInt(elem.dataset.amount), 10)) {
@@ -117,34 +122,68 @@ module.exports = (elem) => {
     return errors === 0;
 };
 
-},{"../Errors":5}],4:[function(require,module,exports){
+},{"../Errors":7}],4:[function(require,module,exports){
 const Cart = require('../Cart');
+const Errors = require('../Errors');
+const DOM = require('../DOM');
 const options = require('../Options');
-const shoppableItems = require('../ShoppableItems');
 
 class Cartmine {
     constructor() {
         this.cart = new Cart();
         this.options = options;
         this.authToken = null;
+        this.onCheckoutHandler = null;
 
-        // Find all items that are able to be added to cart in DOM
-        shoppableItems.find(this.cart);
+        document.addEventListener('DOMContentLoaded', () => {
+            this.init();
+        });
     }
     checkout() {
-        // console.log(this.cart.get());
+        if (this.onCheckoutHandler) {
+            this.onCheckoutHandler();
+        } else {
+            this.submit();
+        }
     }
     onCheckout(func) {
-        this.onCheckoutHandler = func.bind(this);
+        this.onCheckoutHandler = func;
     }
-    submit() {
-        console.log(this);
+    submit(token) {
+        if (token !== undefined) {
+            this.setAuthToken(token);
+        }
+        // Send all data to this.options.checkoutUrl
+        console.log(this.makePurchaseDocument())
+    }
+    makePurchaseDocument() {
+        const cartItems = this.cart.get();
+        const purchaseDocument = {
+            options: this.options,
+            subtotal: this.getSubtotal(),
+            items: Object.keys(cartItems).map((cartItemKey) => cartItems[cartItemKey]),
+            currencyCode: this.options.currency,
+            taxRate: this.options.taxRate
+        };
+
+        if (this.authToken) {
+            purchaseDocument.authToken = this.authToken;
+        }
+
+        return JSON.stringify(purchaseDocument);
     }
     setAuthToken(token) {
         this.authToken = token;
     }
     getSubtotal() {
         return this.cart.getSubtotal();
+    }
+    init() {
+        DOM.setupItems(this);
+        DOM.setupCheckoutButtons(this);
+        if (options.testing) {
+            Errors.log();
+        }
     }
     static start() {
         if (!window.Cartmine) {
@@ -156,7 +195,97 @@ class Cartmine {
 
 module.exports = Cartmine;
 
-},{"../Cart":1,"../Options":7,"../ShoppableItems":8}],5:[function(require,module,exports){
+},{"../Cart":1,"../DOM":5,"../Errors":7,"../Options":9}],5:[function(require,module,exports){
+const CartItem = require('../CartItem');
+const listeners = require('./listeners.js');
+
+
+module.exports = {
+    setupItems(Cartmine) {
+        if (Cartmine.options.dataMapId) {
+            this.mapDataToItems(Cartmine);
+        }
+        const items = [].slice.call(document.querySelectorAll('[data-cartmine-item]'));
+        this.addItems(Cartmine, items);
+    },
+    addItems(Cartmine, items) {
+        items.forEach((item) => {
+            let reference = null;
+            if (item.dataset.ref) {
+                reference = item;
+                item = CartItem.resolveReference(item);
+                if (!item) {
+                    return false;
+                }
+                item.setAttribute('data-referenced', true);
+            }
+            if (CartItem.validate(item)) {
+                const addableItem = new CartItem(item);
+
+                // Update any out of date cart items (price, etc)
+                Cartmine.cart.update(addableItem);
+
+                // Add item to cart
+                listeners.add({
+                    elem: (reference) ? reference : item,
+                    handler: () => {
+                        Cartmine.cart.add(addableItem);
+                    }
+                });
+            }
+        });
+    },
+    mapDataToItems(Cartmine) {
+        const dataMapId = Cartmine.options.dataMapId;
+        const dataMapScript = document.getElementById(dataMapId);
+        if (!dataMapScript) {
+            return false;
+        }
+        const dataItems = JSON.parse(dataMapScript.innerHTML);
+        const itemsToAdd = [];
+        Object.keys(dataItems).forEach((dataItemKey) => {
+            const dataItem = dataItems[dataItemKey];
+            if (!dataItem.selector) {
+                return false;
+            }
+            const dataItemElems = [].slice.call(document.querySelectorAll(dataItem.selector));
+            dataItemElems.forEach((elem) => {
+                elem.setAttribute('data-id', dataItemKey);
+                Object.keys(dataItem).forEach((dataItemPropKey) => {
+                    elem.setAttribute(`data-${dataItemPropKey}`, dataItem[dataItemPropKey]);
+                });
+                itemsToAdd.push(elem);
+            });
+        });
+        this.addItems(Cartmine, itemsToAdd);
+    },
+    setupCheckoutButtons(Cartmine) {
+        const checkoutButtons = [].slice.call(document.querySelectorAll('[data-cartmine-checkout]'));
+        checkoutButtons.forEach((button) => {
+            listeners.add({
+                elem: button,
+                handler: () => {
+                    Cartmine.checkout();
+                }
+            });
+        });
+    }
+};
+
+},{"../CartItem":2,"./listeners.js":6}],6:[function(require,module,exports){
+module.exports = {
+    add({
+        elem,
+        handler,
+        listeners = ['click']
+    }) {
+        listeners.forEach((listener) => {
+            elem.addEventListener(listener, handler);
+        });
+    }
+};
+
+},{}],7:[function(require,module,exports){
 /*eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 
 class Errors {
@@ -195,7 +324,7 @@ class Errors {
 
 module.exports = new Errors();
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 class Notifications {
     create({ type, item }) {
         switch (type) {
@@ -215,40 +344,18 @@ class Notifications {
 
 module.exports = new Notifications();
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 const cartmineScript = document.querySelector('script[data-cartmine]');
 const options = {
-    currency: cartmineScript.getAttribute('data-currency') || 'USD',
-    testing: (
-        cartmineScript.getAttribute('data-testing') === true
-        || cartmineScript.getAttribute('data-testing') === 'true'
-    ),
+    currencyCode: cartmineScript.getAttribute('data-currency') || 'USD',
+    testing: (cartmineScript.getAttribute('data-testing') === 'true'),
+    checkoutUrl: cartmineScript.getAttribute('data-checkout-url'),
+    taxRate: cartmineScript.getAttribute('data-tax-rate') || null,
+    dataMapId: cartmineScript.getAttribute('data-items-map-id') || null,
 };
 module.exports = options;
 
-},{}],8:[function(require,module,exports){
-const CartItem = require('../CartItem');
-
-module.exports = {
-    find(cart) {
-        const items = [].slice.call(document.querySelectorAll('[data-cartmine-item]'));
-        items.forEach((item) => {
-            if (CartItem.validate(item)) {
-                const addableItem = new CartItem(item);
-
-                // Update any out of date cart items (price, etc)
-                cart.update(addableItem);
-
-                // Add item to cart
-                CartItem.addClickListener(item, () => {
-                    cart.add(addableItem);
-                });
-            }
-        });
-    }
-};
-
-},{"../CartItem":2}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /* global Cookies */
 class Storage {
     constructor() {
@@ -285,17 +392,10 @@ class Storage {
 
 module.exports = new Storage();
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 const Cartmine = require('./Cartmine');
-const Errors = require('./Errors');
-const options = require('./Options');
 
-document.addEventListener('DOMContentLoaded', () => {
-    Cartmine.start();
-});
+// Start Cartmine
+Cartmine.start();
 
-if (options.testing) {
-    Errors.log();
-}
-
-},{"./Cartmine":4,"./Errors":5,"./Options":7}]},{},[10]);
+},{"./Cartmine":4}]},{},[11]);
